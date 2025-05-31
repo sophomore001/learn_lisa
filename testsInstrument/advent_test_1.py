@@ -85,6 +85,33 @@ def estimate_noise_parameters_old(taus, adev_measured):
 
     return estimated_params
 
+# ========================== 由Allan偏差求功率谱密度 ==========================
+def allan_to_psd(tau, adev, params):
+    """
+    根据Allan偏差计算功率谱密度(PSD)
+    参数:
+        tau: 积分时间数组
+        adev: Allan偏差数组
+        params: 噪声参数数组 [A_wp, A_wf, A_ff, A_rw]
+    返回:
+        频率数组和对应的PSD值
+    """
+    A_wp, A_wf, A_ff, A_rw = params
+
+    # 计算频率点 (1/tau)
+    f = 1 / tau
+
+    # 计算各噪声项的PSD
+    S_wp = (((A_wp ** 2) * (2 * np.pi ) ** 2) / 3) * f ** 2  # 白相位噪声PSD
+    S_wf = A_wf ** 2 * 2 * np.ones(5)                         # 白频率噪声PSD
+    S_ff = (A_ff ** 2 / 2 * np.log(2)) / f                     # 闪烁频率噪声PSD
+    S_rw = (A_rw ** 2 * 6) / (2 * np.pi * f) ** 2  # 随机游走噪声PSD
+
+    # 总PSD
+    S_total = S_wp + S_wf + S_ff + S_rw
+
+    return f, S_total, S_wp, S_wf, S_ff, S_rw
+
 
 # ========================== 实验数据 ==========================
 # USO实验测量的tau和sigma数据点
@@ -112,33 +139,51 @@ params_opt = result.x
 # ============================使用最小二乘法估计参数并预测============================
 estimated_params = estimate_noise_parameters_old(tau_measured, sigma_measured)
 
+# 绘制功率谱密度
+f, S_total, S_wp, S_wf, S_ff, S_rw = allan_to_psd(tau_measured, sigma_measured, params_opt)
+plt.figure(figsize=(10, 6))
+plt.loglog(f, S_total, 'k-', label='total PSD', linewidth=2)
+plt.loglog(f, S_wp, 'r--', label='wp PSD')
+plt.loglog(f, S_wf, 'g--', label='wf PSD')
+plt.loglog(f, S_ff, 'b--', label='ff PSD')
+plt.loglog(f, S_rw, 'm--', label='rw PSD')
+plt.xlabel('f (Hz)', fontsize=12)
+plt.ylabel('psd', fontsize=12)
+plt.title('psd analyze', fontsize=14)
+plt.grid(True, which='both', linestyle='--')
+plt.legend()
+plt.tight_layout()
+plt.show()
+
 # ========================== 生成对比图 ==========================
 # # 计算预测的Allan偏差
 # sigma_sim = allan_deviation(tau_measured, params_opt)
 # # 计算预测的Allan偏差（使用最小二乘法）
 # sigma_sim_old = allan_deviation(tau_measured, estimated_params.values())
 # 生成更密集的tau点以获得平滑的拟合曲线
-tau_sim = np.logspace(-1, 4, 100)
-sigma_sim = allan_deviation(tau_sim, params_opt)
-sigma_sim_old = allan_deviation(tau_sim, estimated_params.values())
+# tau_sim = np.logspace(-1, 4, 100)
+# sigma_sim = allan_deviation(tau_sim, params_opt)
+# sigma_sim_old = allan_deviation(tau_sim, estimated_params.values())
 
-# 绘制测量数据和拟合模型的对比图
-plt.figure(figsize=(10, 6))
-# plt.loglog(tau_measured, sigma_measured, 'bo-', label='Measured (USO)')
-plt.loglog(tau_measured, sigma_measured, 'bo-', label='Measured (hydrogen atomic)')
-plt.loglog(tau_sim, sigma_sim, 'r--', label='Predicted (L-M)')
-# plt.loglog(tau_measured, sigma_sim, 'r--', label='Predicted (L-M)')
-plt.loglog(tau_sim, sigma_sim_old, 'g--', label='Predicted (Least Squares)')
-# plt.loglog(tau_measured, sigma_sim_old, 'g--', label='Predicted (Least Squares)')
-plt.xlabel('Averaging Time $\\tau$ (s)', fontsize=12)
-plt.ylabel('Allan Deviation', fontsize=12)
-# plt.title('Comparison of Allan Deviation: Measured (USO) vs Predicted (Model)', fontsize=14)
-plt.title('Comparison of Allan Deviation: Measured (hydrogen atomic) vs Predicted (Model)', fontsize=14)
-plt.grid(True, which='both', linestyle='--')
-plt.legend()
-plt.tight_layout()
-plt.xlim(0.1, 1000)
-plt.show()
+# # 绘制测量数据和拟合模型的对比图
+# plt.figure(figsize=(10, 6))
+# # plt.loglog(tau_measured, sigma_measured, 'bo-', label='Measured (USO)')
+# plt.loglog(tau_measured, sigma_measured, 'bo-', label='Measured (hydrogen atomic)')
+# plt.loglog(tau_sim, sigma_sim, 'r--', label='Predicted (L-M)')
+# # plt.loglog(tau_measured, sigma_sim, 'r--', label='Predicted (L-M)')
+# plt.loglog(tau_sim, sigma_sim_old, 'g--', label='Predicted (Least Squares)')
+# # plt.loglog(tau_measured, sigma_sim_old, 'g--', label='Predicted (Least Squares)')
+# plt.xlabel('Averaging Time $\\tau$ (s)', fontsize=12)
+# plt.ylabel('Allan Deviation', fontsize=12)
+# # plt.title('Comparison of Allan Deviation: Measured (USO) vs Predicted (Model)', fontsize=14)
+# plt.title('Comparison of Allan Deviation: Measured (hydrogen atomic) vs Predicted (Model)', fontsize=14)
+# plt.grid(True, which='both', linestyle='--')
+# plt.legend()
+# plt.tight_layout()
+# plt.xlim(0.1, 1000)
+# plt.show()
+
+
 # plt.savefig('uso_comparison.png', dpi=300)
 
 # # Generate Allan deviation plots for four different noise components
