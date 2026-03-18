@@ -1,0 +1,46 @@
+{
+  "config": {
+    "reference_temperature": 25.0,
+    "dt": 1.0,
+    "duration_hours": 48.0,
+    "training_ratio": 0.6,
+    "white_fm_level": 1e-13,
+    "output_dir": "D:\\LISA\\发明专利\\temp_patent\\output"
+  },
+  "true_params": {
+    "alpha": 7e-11,
+    "beta": -1.2e-11,
+    "gamma": 1.1e-12,
+    "tau_th": 1450.0
+  },
+  "initial_params": {
+    "alpha": 6.501950486818716e-11,
+    "beta": -1.0817716750239491e-11,
+    "gamma": 3.2800347065075474e-12,
+    "tau_th": 1304.7938386244782
+  },
+  "identified_params": {
+    "alpha": 6.994339926039795e-11,
+    "beta": -1.1993522336880969e-11,
+    "gamma": 1.1769216388920908e-12,
+    "tau_th": 1459.560963217957
+  },
+  "solver": {
+    "cost": 1.3675637947777877e-21,
+    "success": true,
+    "status": 1,
+    "message": "`gtol` termination condition is satisfied.",
+    "nfev": 5
+  },
+  "metrics": {
+    "rmse_before": 1.0499089562646814e-10,
+    "rmse_after": 1.8750380967020913e-13,
+    "corr_before": 0.9647129942786405,
+    "corr_after": 0.39636960311278985,
+    "loop_area_before": 4.711388169529772e-10,
+    "loop_area_after": 1.9801101935080126e-12,
+    "rmse_improvement_ratio": 559.9400663438853,
+    "corr_reduction": 0.5683433911658506,
+    "loop_area_reduction_ratio": 237.9356555497025
+  }
+}
